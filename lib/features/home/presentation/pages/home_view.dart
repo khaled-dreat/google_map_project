@@ -29,7 +29,13 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
   }
 
-  void checkkAndRequestLocationService() {}
+  void checkkAndRequestLocationService() async {
+    var isServiceEnabled = await location.serviceEnabled();
+    if (!isServiceEnabled) {
+      isServiceEnabled = await location.requestService();
+      if (!isServiceEnabled) {}
+    }
+  }
 
   Future<Uint8List> getImageFromRawData(String image, double width) async {
     // * Convert Image to Row
