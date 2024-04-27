@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 
 import '../../data/models/m_palce.dart';
 
@@ -18,12 +19,17 @@ class HomeView extends StatefulWidget {
 late GoogleMapController googleMapController;
 
 class _HomeViewState extends State<HomeView> {
+  late Location location;
   @override
   void initState() {
     // TODO: implement initState
     initMarkers();
+    location = Location();
+    checkkAndRequestLocationService();
     super.initState();
   }
+
+  void checkkAndRequestLocationService() {}
 
   Future<Uint8List> getImageFromRawData(String image, double width) async {
     // * Convert Image to Row
