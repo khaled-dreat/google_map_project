@@ -35,6 +35,15 @@ class _HomeViewState extends State<HomeView> {
       isServiceEnabled = await location.requestService();
       if (!isServiceEnabled) {}
     }
+    checkkAndRequestLocationPermission();
+  }
+
+  void checkkAndRequestLocationPermission() async {
+    var permissionStatus = await location.hasPermission();
+    if (permissionStatus == PermissionStatus.denied) {
+      permissionStatus = await location.requestPermission();
+      if (permissionStatus != PermissionStatus.granted) {}
+    }
   }
 
   Future<Uint8List> getImageFromRawData(String image, double width) async {
