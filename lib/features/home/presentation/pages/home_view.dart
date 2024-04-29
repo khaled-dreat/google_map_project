@@ -16,34 +16,64 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-late GoogleMapController googleMapController;
+GoogleMapController? googleMapController;
 
 class _HomeViewState extends State<HomeView> {
   late Location location;
   @override
   void initState() {
-    // TODO: implement initState
-    initMarkers();
+    //  initMarkers();
     location = Location();
-    checkkAndRequestLocationService();
+    updateMyLocation();
     super.initState();
   }
 
-  void checkkAndRequestLocationService() async {
+  Future<void> checkkAndRequestLocationService() async {
     var isServiceEnabled = await location.serviceEnabled();
     if (!isServiceEnabled) {
       isServiceEnabled = await location.requestService();
       if (!isServiceEnabled) {}
     }
-    checkkAndRequestLocationPermission();
   }
 
-  void checkkAndRequestLocationPermission() async {
+  Future<bool> checkkAndRequestLocationPermission() async {
     var permissionStatus = await location.hasPermission();
+    if (permissionStatus == PermissionStatus.deniedForever) {
+      return false;
+    }
     if (permissionStatus == PermissionStatus.denied) {
       permissionStatus = await location.requestPermission();
-      if (permissionStatus != PermissionStatus.granted) {}
+      if (permissionStatus != PermissionStatus.granted) {
+        return false;
+      }
     }
+    return true;
+  }
+
+  void getLocationData() {
+    location.changeSettings(distanceFilter: 2);
+    location.onLocationChanged.listen(
+      (locationData) {
+        var camerPosition = CameraPosition(
+            zoom: 12,
+            target: LatLng(locationData.latitude!, locationData.longitude!));
+        var myLocationMarker = Marker(
+            markerId: const MarkerId("2"),
+            position: LatLng(locationData.latitude!, locationData.longitude!));
+        markers.add(myLocationMarker);
+        setState(() {});
+        googleMapController
+            ?.animateCamera(CameraUpdate.newCameraPosition(camerPosition));
+      },
+    );
+  }
+
+  void updateMyLocation() async {
+    await checkkAndRequestLocationService();
+    var hasPermission = await checkkAndRequestLocationPermission();
+    if (hasPermission) {
+      getLocationData();
+    } else {}
   }
 
   Future<Uint8List> getImageFromRawData(String image, double width) async {
@@ -63,8 +93,8 @@ class _HomeViewState extends State<HomeView> {
   void initMapStyle() async {
     var nighMapStyle = await DefaultAssetBundle.of(context)
         .loadString("assets/map_syles/night_map_style.json");
-    googleMapController.setMapStyle(nighMapStyle);
-    initMarkers();
+    googleMapController!.setMapStyle(nighMapStyle);
+    // initMarkers();
     initPolyLines();
   }
 
@@ -81,25 +111,25 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Set<Marker> markers = {};
-  void initMarkers() async {
-    var customMarkerIcon = BitmapDescriptor.fromBytes(
-        await getImageFromRawData("assets/images/icons8-marker-50.png", 100));
-
-    var myMarkers = places
-        .map(
-          (placeModel) => Marker(
-            icon: customMarkerIcon,
-            infoWindow: InfoWindow(title: placeModel.name),
-            position: placeModel.latLng,
-            markerId: MarkerId(
-              placeModel.id.toString(),
-            ),
-          ),
-        )
-        .toSet();
-    markers.addAll(myMarkers);
-    setState(() {});
-  }
+// void initMarkers() async {
+//   var customMarkerIcon = BitmapDescriptor.fromBytes(
+//       await getImageFromRawData("assets/images/icons8-marker-50.png", 100));
+//
+//   var myMarkers = places
+//       .map(
+//         (placeModel) => Marker(
+//           icon: customMarkerIcon,
+//           infoWindow: InfoWindow(title: placeModel.name),
+//           position: placeModel.latLng,
+//           markerId: MarkerId(
+//             placeModel.id.toString(),
+//           ),
+//         ),
+//       )
+//       .toSet();
+//   markers.addAll(myMarkers);
+//   setState(() {});
+// }
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +146,7 @@ class _HomeViewState extends State<HomeView> {
               initMapStyle();
             },
             initialCameraPosition: CameraPosition(
-                zoom: 1,
+                zoom: 12,
                 target: LatLng(31.186070052677902, 29.93063447509182))),
       ),
     );
