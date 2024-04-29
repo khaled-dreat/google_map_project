@@ -17,8 +17,6 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-GoogleMapController? googleMapController;
-
 class _HomeViewState extends State<HomeView> {
   late LocationService locationService;
   late CameraPosition initalCameraPosition;
@@ -27,6 +25,7 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     initalCameraPosition = const CameraPosition(target: LatLng(0, 0));
     locationService = LocationService();
+    updateCurrentLocation();
     super.initState();
   }
 
@@ -38,14 +37,22 @@ class _HomeViewState extends State<HomeView> {
       ),
       body: Center(
         child: GoogleMap(
-            onMapCreated: (controller) {
-              googleMapController = controller;
-            },
-            initialCameraPosition: CameraPosition(
-                zoom: 12,
-                target: LatLng(31.186070052677902, 29.93063447509182))),
+            zoomControlsEnabled: false,
+            initialCameraPosition: initalCameraPosition),
       ),
     );
+  }
+
+  void updateCurrentLocation() async {
+    try {
+      LocationData locationData = await locationService.getLocation();
+    } on LocationServiceException catch (e) {
+      // TODO
+    } on LocationPermissionException catch (e) {
+      // TODO
+    } catch (e) {
+      // TODO
+    }
   }
 }
 
