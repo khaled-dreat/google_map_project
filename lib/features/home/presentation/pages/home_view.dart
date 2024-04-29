@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_with_google_maps/utils/location_service/location_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 
@@ -19,61 +20,43 @@ class HomeView extends StatefulWidget {
 GoogleMapController? googleMapController;
 
 class _HomeViewState extends State<HomeView> {
-  late Location location;
+  late LocationService locationService;
   @override
   void initState() {
     //  initMarkers();
-    location = Location();
+    locationService = LocationService();
     updateMyLocation();
     super.initState();
   }
 
-  Future<void> checkkAndRequestLocationService() async {
-    var isServiceEnabled = await location.serviceEnabled();
-    if (!isServiceEnabled) {
-      isServiceEnabled = await location.requestService();
-      if (!isServiceEnabled) {}
-    }
-  }
-
-  Future<bool> checkkAndRequestLocationPermission() async {
-    var permissionStatus = await location.hasPermission();
-    if (permissionStatus == PermissionStatus.deniedForever) {
-      return false;
-    }
-    if (permissionStatus == PermissionStatus.denied) {
-      permissionStatus = await location.requestPermission();
-      if (permissionStatus != PermissionStatus.granted) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  void getLocationData() {
-    location.changeSettings(distanceFilter: 2);
-    location.onLocationChanged.listen(
-      (locationData) {
-        var camerPosition = CameraPosition(
-            zoom: 12,
-            target: LatLng(locationData.latitude!, locationData.longitude!));
-        var myLocationMarker = Marker(
-            markerId: const MarkerId("2"),
-            position: LatLng(locationData.latitude!, locationData.longitude!));
-        markers.add(myLocationMarker);
-        setState(() {});
-        googleMapController
-            ?.animateCamera(CameraUpdate.newCameraPosition(camerPosition));
-      },
-    );
-  }
-
   void updateMyLocation() async {
-    await checkkAndRequestLocationService();
-    var hasPermission = await checkkAndRequestLocationPermission();
+    await locationService.checkkAndRequestLocationService();
+    var hasPermission =
+        await locationService.checkkAndRequestLocationPermission();
     if (hasPermission) {
-      getLocationData();
+      locationService.getRealTimeLocationData(
+        (locationData) {
+          setMyLocationMarker(locationData);
+          setMyCameraPosition(locationData);
+        },
+      );
     } else {}
+  }
+
+  void setMyCameraPosition(LocationData locationData) {
+    var myLocationMarker = Marker(
+        markerId: const MarkerId("2"),
+        position: LatLng(locationData.latitude!, locationData.longitude!));
+    markers.add(myLocationMarker);
+    setState(() {});
+  }
+
+  void setMyLocationMarker(LocationData locationData) {
+    var camerPosition = CameraPosition(
+        zoom: 12,
+        target: LatLng(locationData.latitude!, locationData.longitude!));
+    googleMapController
+        ?.animateCamera(CameraUpdate.newCameraPosition(camerPosition));
   }
 
   Future<Uint8List> getImageFromRawData(String image, double width) async {
