@@ -21,85 +21,50 @@ GoogleMapController? googleMapController;
 
 class _HomeViewState extends State<HomeView> {
   late LocationService locationService;
+  late CameraPosition initalCameraPosition;
   bool isFirstCall = true;
   @override
   void initState() {
-    //  initMarkers();
+    initalCameraPosition = const CameraPosition(target: LatLng(0, 0));
     locationService = LocationService();
-    updateMyLocation();
     super.initState();
   }
 
-  void updateMyLocation() async {
-    await locationService.checkkAndRequestLocationService();
-    var hasPermission =
-        await locationService.checkkAndRequestLocationPermission();
-    if (hasPermission) {
-      locationService.getRealTimeLocationData(
-        (locationData) {
-          setMyLocationMarker(locationData);
-          updateMyCamera(locationData);
-        },
-      );
-    } else {}
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: Center(
+        child: GoogleMap(
+            onMapCreated: (controller) {
+              googleMapController = controller;
+            },
+            initialCameraPosition: CameraPosition(
+                zoom: 12,
+                target: LatLng(31.186070052677902, 29.93063447509182))),
+      ),
+    );
   }
+}
 
-  void setMyLocationMarker(LocationData locationData) {
-    var myLocationMarker = Marker(
-        markerId: const MarkerId("2"),
-        position: LatLng(locationData.latitude!, locationData.longitude!));
-    markers.add(myLocationMarker);
-    setState(() {});
-  }
+// ! update Location
+//  void updateMyLocation() async {
+//    await locationService.checkkAndRequestLocationService();
+//    var hasPermission =
+//        await locationService.checkkAndRequestLocationPermission();
+//    if (hasPermission) {
+//      locationService.getRealTimeLocationData(
+//        (locationData) {
+//          setMyLocationMarker(locationData);
+//          updateMyCamera(locationData);
+//        },
+//      );
+//    } else {}
+//  }
 
-  void updateMyCamera(LocationData locationData) {
-    if (isFirstCall) {
-      var camerPosition = CameraPosition(
-          target: LatLng(locationData.latitude!, locationData.longitude!),
-          zoom: 17);
-      googleMapController
-          ?.animateCamera(CameraUpdate.newCameraPosition(camerPosition));
-    } else {
-      googleMapController?.animateCamera(CameraUpdate.newLatLng(
-          LatLng(locationData.latitude!, locationData.longitude!)));
-    }
-  }
-
-  Future<Uint8List> getImageFromRawData(String image, double width) async {
-    // * Convert Image to Row
-    var imageData = await rootBundle.load(image);
-    // * Change width of image
-    var imageCodec = await ui.instantiateImageCodec(
-        imageData.buffer.asUint8List(),
-        targetWidth: width.round());
-    var imageFrame = await imageCodec.getNextFrame();
-    // * Change Image Format
-    var imageByData =
-        await imageFrame.image.toByteData(format: ui.ImageByteFormat.png);
-    return imageByData!.buffer.asUint8List();
-  }
-
-  void initMapStyle() async {
-    var nighMapStyle = await DefaultAssetBundle.of(context)
-        .loadString("assets/map_syles/night_map_style.json");
-    googleMapController!.setMapStyle(nighMapStyle);
-    // initMarkers();
-    initPolyLines();
-  }
-
-  Set<Polyline> polylines = {};
-  void initPolyLines() {
-    Polyline polyline = const Polyline(polylineId: PolylineId("1"), points: [
-      LatLng(31.132964439427763, 30.036379470734442),
-      LatLng(31.132964439427763, 30.036379470734442),
-      LatLng(31.10937181445342, 30.07986148631722),
-      LatLng(31.16371342210075, 30.084556727436492),
-      LatLng(31.117586208659116, 29.98901877770532),
-    ]);
-    polylines.add(polyline);
-  }
-
-  Set<Marker> markers = {};
+// ! initialization  Markers
 // void initMarkers() async {
 //   var customMarkerIcon = BitmapDescriptor.fromBytes(
 //       await getImageFromRawData("assets/images/icons8-marker-50.png", 100));
@@ -118,26 +83,65 @@ class _HomeViewState extends State<HomeView> {
 //       .toSet();
 //   markers.addAll(myMarkers);
 //   setState(() {});
+
+
+// ! initialization  polylines
+//Set<Polyline> polylines = {};
+//void initPolyLines() {
+//  Polyline polyline = const Polyline(polylineId: PolylineId("1"), points: [
+//    LatLng(31.132964439427763, 30.036379470734442),
+//    LatLng(31.132964439427763, 30.036379470734442),
+//    LatLng(31.10937181445342, 30.07986148631722),
+//    LatLng(31.16371342210075, 30.084556727436492),
+//    LatLng(31.117586208659116, 29.98901877770532),
+//  ]);
+//  polylines.add(polyline);
+//}
+
+// ! initialization Map Style
+// void initMapStyle() async {
+//   var nighMapStyle = await DefaultAssetBundle.of(context)
+//       .loadString("assets/map_syles/night_map_style.json");
+//   googleMapController!.setMapStyle(nighMapStyle);
+//   // initMarkers();
+//   initPolyLines();
 // }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: GoogleMap(
-            polylines: polylines,
-            markers: markers,
-            onMapCreated: (controller) {
-              googleMapController = controller;
-              initMapStyle();
-            },
-            initialCameraPosition: CameraPosition(
-                zoom: 12,
-                target: LatLng(31.186070052677902, 29.93063447509182))),
-      ),
-    );
-  }
-}
+// ! get Image From Raw Data
+ // Future<Uint8List> getImageFromRawData(String image, double width) async {
+ //   // * Convert Image to Row
+ //   var imageData = await rootBundle.load(image);
+ //   // * Change width of image
+ //   var imageCodec = await ui.instantiateImageCodec(
+ //       imageData.buffer.asUint8List(),
+ //       targetWidth: width.round());
+ //   var imageFrame = await imageCodec.getNextFrame();
+ //   // * Change Image Format
+ //   var imageByData =
+ //       await imageFrame.image.toByteData(format: ui.ImageByteFormat.png);
+ //   return imageByData!.buffer.asUint8List();
+ // }
+
+ // ! update My Camera
+//  void updateMyCamera(LocationData locationData) {
+//    if (isFirstCall) {
+//      var camerPosition = CameraPosition(
+//          target: LatLng(locationData.latitude!, locationData.longitude!),
+//          zoom: 17);
+//      googleMapController
+//          ?.animateCamera(CameraUpdate.newCameraPosition(camerPosition));
+//    } else {
+//      googleMapController?.animateCamera(CameraUpdate.newLatLng(
+//          LatLng(locationData.latitude!, locationData.longitude!)));
+//    }
+//  }
+
+ // ! set My Location Marker
+//  void setMyLocationMarker(LocationData locationData) {
+//    var myLocationMarker = Marker(
+//        markerId: const MarkerId("2"),
+//        position: LatLng(locationData.latitude!, locationData.longitude!));
+//    markers.add(myLocationMarker);
+//    setState(() {});
+//  }
+// }
