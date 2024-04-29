@@ -21,6 +21,7 @@ GoogleMapController? googleMapController;
 
 class _HomeViewState extends State<HomeView> {
   late LocationService locationService;
+  bool isFirstCall = true;
   @override
   void initState() {
     //  initMarkers();
@@ -37,13 +38,13 @@ class _HomeViewState extends State<HomeView> {
       locationService.getRealTimeLocationData(
         (locationData) {
           setMyLocationMarker(locationData);
-          setMyCameraPosition(locationData);
+          updateMyCamera(locationData);
         },
       );
     } else {}
   }
 
-  void setMyCameraPosition(LocationData locationData) {
+  void setMyLocationMarker(LocationData locationData) {
     var myLocationMarker = Marker(
         markerId: const MarkerId("2"),
         position: LatLng(locationData.latitude!, locationData.longitude!));
@@ -51,12 +52,17 @@ class _HomeViewState extends State<HomeView> {
     setState(() {});
   }
 
-  void setMyLocationMarker(LocationData locationData) {
-    var camerPosition = CameraPosition(
-        zoom: 12,
-        target: LatLng(locationData.latitude!, locationData.longitude!));
-    googleMapController
-        ?.animateCamera(CameraUpdate.newCameraPosition(camerPosition));
+  void updateMyCamera(LocationData locationData) {
+    if (isFirstCall) {
+      var camerPosition = CameraPosition(
+          target: LatLng(locationData.latitude!, locationData.longitude!),
+          zoom: 17);
+      googleMapController
+          ?.animateCamera(CameraUpdate.newCameraPosition(camerPosition));
+    } else {
+      googleMapController?.animateCamera(CameraUpdate.newLatLng(
+          LatLng(locationData.latitude!, locationData.longitude!)));
+    }
   }
 
   Future<Uint8List> getImageFromRawData(String image, double width) async {
