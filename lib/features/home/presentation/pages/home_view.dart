@@ -30,6 +30,7 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
   }
 
+  Set<Marker> markers = {};
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,6 +39,8 @@ class _HomeViewState extends State<HomeView> {
       ),
       body: Center(
         child: GoogleMap(
+            mapType: MapType.hybrid,
+            markers: markers,
             onMapCreated: (controller) {
               googleMapController = controller;
               updateCurrentLocation();
@@ -51,11 +54,17 @@ class _HomeViewState extends State<HomeView> {
   void updateCurrentLocation() async {
     try {
       LocationData locationData = await locationService.getLocation();
-      CameraPosition myCurrentCameraPosition = CameraPosition(
-          target: LatLng(locationData.latitude!, locationData.longitude!),
-          zoom: 16);
+      LatLng currentPoistion =
+          LatLng(locationData.latitude!, locationData.longitude!);
+      CameraPosition myCurrentCameraPosition =
+          CameraPosition(target: currentPoistion, zoom: 16);
       googleMapController.animateCamera(
           CameraUpdate.newCameraPosition(myCurrentCameraPosition));
+      Marker currentLocationMarker =
+          Marker(markerId: MarkerId("1"), position: currentPoistion);
+
+      markers.add(currentLocationMarker);
+      setState(() {});
     } on LocationServiceException catch (e) {
       // TODO
     } on LocationPermissionException catch (e) {
