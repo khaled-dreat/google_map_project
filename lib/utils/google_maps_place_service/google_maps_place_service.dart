@@ -6,8 +6,8 @@ import 'package:http/http.dart' as http;
 class GoogleMapsPlaceService {
   final String baseUrl = 'https://maps.googleapis.com/maps/api/place';
   final String apiKey = 'AIzaSyCRKcVVWtCfa1TCSfMtfNJ599N_jrNUux4';
-
-  Future<List<PlaceModel>> getPredictions({required String input}) async {
+// * Get Places Data
+  Future<List<PlaceModel>> getPlacesData({required String input}) async {
     var response = await http
         .get(Uri.parse('$baseUrl/autocomplete/json?key=$apiKey&input=$input'));
     if (response.statusCode == 200) {
