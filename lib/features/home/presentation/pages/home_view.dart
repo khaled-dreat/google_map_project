@@ -1,12 +1,12 @@
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_with_google_maps/features/home/presentation/widgets/custom_text_field.dart';
+import 'package:flutter_with_google_maps/models/place_autocomplete_model/place_autocomplete_model.dart';
+import 'package:flutter_with_google_maps/utils/google_maps_place_service/google_maps_place_service.dart';
 import 'package:flutter_with_google_maps/utils/location_service/location_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-
-import '../../data/models/m_palce.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key, required this.title});
@@ -18,35 +18,79 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  late GoogleMapsPlaceService googleMapsPlaceService;
   late LocationService locationService;
   late CameraPosition initalCameraPosition;
   late GoogleMapController googleMapController;
+  late TextEditingController textEditingController;
+  List<PlaceModel> places = [];
   bool isFirstCall = true;
   @override
   void initState() {
+    googleMapsPlaceService = GoogleMapsPlaceService();
     initalCameraPosition = const CameraPosition(target: LatLng(0, 0));
     locationService = LocationService();
+    textEditingController = TextEditingController();
+    fetchPredictions();
     updateCurrentLocation();
     super.initState();
+  }
+
+  void fetchPredictions() {
+    textEditingController.addListener(
+      () async {
+        if (textEditingController.text.isNotEmpty) {
+          List<PlaceModel> result = await googleMapsPlaceService.getPredictions(
+              input: textEditingController.text);
+          places.clear();
+          places.addAll(result);
+          setState(() {});
+        } else {
+          setState(() {
+            places.clear();
+          });
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    textEditingController.dispose();
+    super.dispose();
   }
 
   Set<Marker> markers = {};
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: GoogleMap(
-            mapType: MapType.hybrid,
-            markers: markers,
-            onMapCreated: (controller) {
-              googleMapController = controller;
-              updateCurrentLocation();
-            },
-            zoomControlsEnabled: false,
-            initialCameraPosition: initalCameraPosition),
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Stack(children: [
+          Center(
+            child: GoogleMap(
+                mapType: MapType.hybrid,
+                markers: markers,
+                onMapCreated: (controller) {
+                  googleMapController = controller;
+                  updateCurrentLocation();
+                },
+                zoomControlsEnabled: false,
+                initialCameraPosition: initalCameraPosition),
+          ),
+          Positioned(
+              top: 16,
+              left: 16,
+              right: 16,
+              child: Column(
+                children: [
+                  CustomTextField(
+                    textEditingController: textEditingController,
+                  ),
+                  CustomListView(places: places)
+                ],
+              ))
+        ]),
       ),
     );
   }
@@ -72,6 +116,26 @@ class _HomeViewState extends State<HomeView> {
     } catch (e) {
       // TODO
     }
+  }
+}
+
+class CustomListView extends StatelessWidget {
+  const CustomListView({
+    super.key,
+    required this.places,
+  });
+
+  final List<PlaceModel> places;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+        shrinkWrap: true,
+        itemBuilder: (context, index) {
+          return Text(places.elementAt(index).description!);
+        },
+        separatorBuilder: (context, index) => Divider(),
+        itemCount: places.length);
   }
 }
 
