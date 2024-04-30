@@ -40,7 +40,7 @@ class _HomeViewState extends State<HomeView> {
     textEditingController.addListener(
       () async {
         if (textEditingController.text.isNotEmpty) {
-          List<PlaceModel> result = await googleMapsPlaceService.getPlacesData(
+          List<PlaceModel> result = await googleMapsPlaceService.getPredictions(
               input: textEditingController.text);
           places.clear();
           places.addAll(result);
