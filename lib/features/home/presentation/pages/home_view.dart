@@ -1,12 +1,15 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_with_google_maps/features/home/presentation/widgets/custom_list_view.dart';
 import 'package:flutter_with_google_maps/features/home/presentation/widgets/custom_text_field.dart';
 import 'package:flutter_with_google_maps/models/place_autocomplete_model/place_autocomplete_model.dart';
 import 'package:flutter_with_google_maps/utils/google_maps_place_service/google_maps_place_service.dart';
 import 'package:flutter_with_google_maps/utils/location_service/location_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key, required this.title});
@@ -23,14 +26,19 @@ class _HomeViewState extends State<HomeView> {
   late CameraPosition initalCameraPosition;
   late GoogleMapController googleMapController;
   late TextEditingController textEditingController;
+  String? sesstionToken;
   List<PlaceModel> places = [];
   bool isFirstCall = true;
+
+  Set<Marker> markers = {};
+  late Uuid uuid;
   @override
   void initState() {
     googleMapsPlaceService = GoogleMapsPlaceService();
     initalCameraPosition = const CameraPosition(target: LatLng(0, 0));
     locationService = LocationService();
     textEditingController = TextEditingController();
+    uuid = const Uuid();
     fetchPredictions();
     updateCurrentLocation();
     super.initState();
@@ -39,9 +47,12 @@ class _HomeViewState extends State<HomeView> {
   void fetchPredictions() {
     textEditingController.addListener(
       () async {
+        sesstionToken ??= uuid.v4();
+        print('$sesstionToken 8888888888888888888888888888888');
+
         if (textEditingController.text.isNotEmpty) {
           List<PlaceModel> result = await googleMapsPlaceService.getPredictions(
-              input: textEditingController.text);
+              sesstionToken: sesstionToken!, input: textEditingController.text);
           places.clear();
           places.addAll(result);
           setState(() {});
@@ -60,7 +71,6 @@ class _HomeViewState extends State<HomeView> {
     super.dispose();
   }
 
-  Set<Marker> markers = {};
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,7 +97,15 @@ class _HomeViewState extends State<HomeView> {
                   CustomTextField(
                     textEditingController: textEditingController,
                   ),
-                  CustomListView(places: places)
+                  CustomListView(
+                    places: places,
+                    onPlaceSelect: (placesDetilsModel) {
+                      sesstionToken = null;
+                      textEditingController.clear();
+                      places.clear();
+                      setState(() {});
+                    },
+                  )
                 ],
               ))
         ]),
@@ -119,25 +137,7 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-class CustomListView extends StatelessWidget {
-  const CustomListView({
-    super.key,
-    required this.places,
-  });
 
-  final List<PlaceModel> places;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.separated(
-        shrinkWrap: true,
-        itemBuilder: (context, index) {
-          return Text(places.elementAt(index).description!);
-        },
-        separatorBuilder: (context, index) => Divider(),
-        itemCount: places.length);
-  }
-}
 
 // ! update Location
 //  void updateMyLocation() async {
