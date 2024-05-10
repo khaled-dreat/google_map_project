@@ -1,16 +1,15 @@
 import 'dart:convert';
 
+import 'package:location/location.dart';
 import 'package:flutter_with_google_maps/models/location_info/location_info.dart';
 import 'package:flutter_with_google_maps/models/routes_model/routes_model.dart';
 import 'package:http/http.dart' as http;
-
-import '../../models/routes_modifiers.dart';
+import 'package:flutter_with_google_maps/models/routes_modifiers.dart';
 
 class RoutesService {
   final String baseUrl =
       'https://routes.googleapis.com/directions/v2:computeRoutes';
-  final String apiKey = 'AIzaSyCRKcVVWtCfa1TCSfMtfNJ599N_jrNUux4';
-
+  final String apiKey = 'AIzaSyA-ZChWpybIvOjKG7yLRatTjUJwnhXUA9E';
   Future<RoutesModel> fetchRoutes(
       {required LocationInfoModel origin,
       required LocationInfoModel destination,
@@ -38,12 +37,12 @@ class RoutesService {
     var response = await http.post(
       url,
       headers: headers,
-      body: body,
+      body: jsonEncode(body),
     );
     if (response.statusCode == 200) {
       return RoutesModel.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception("No routes found");
+      throw Exception('No routes found');
     }
   }
 }
