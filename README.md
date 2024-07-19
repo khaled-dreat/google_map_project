@@ -1,16 +1,12 @@
-# google_map_project
 
-A new Flutter project.
 
-## Getting Started
+### Project Description
 
-This project is a starting point for a Flutter application.
+An experimental mobile application developed using Flutter, integrated with Google Maps technology to offer multiple features including place search, tracking, and detailed place information.
 
-A few resources to get you started if this is your first Flutter project:
+#### Fetcher
+- **Search:** Users can search for various places such as restaurants, shops, and tourist attractions using the Google Places API.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Tracking:** Users can track specific locations on the map and receive real-time updates about their current location.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- **Detailed Information:** Display detailed information about the places that are being searched or tracked.
